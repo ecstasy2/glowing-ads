@@ -20,8 +20,8 @@ public class GlowingFlurryPlateform implements AdsPlateform{
 	public class MyAdListenner implements FlurryAdListener {
 
 		@Override
-		public void onAdClosed(String arg0) {
-			
+		public void onAdClosed(String unit) {
+			delegate.didDismissInterstitial(unit, GlowingFlurryPlateform.this);
 		}
 
 		@Override
@@ -52,7 +52,7 @@ public class GlowingFlurryPlateform implements AdsPlateform{
 	}
 
 	private MyAdListenner adListenner;
-	private String defaultUnitName;
+	private String defaultUnitName = "Default";
 	private WeakReference<Activity> contextRef;
 	private String apiKey;
 	private GlowingAdsDelegate delegate;
@@ -87,7 +87,7 @@ public class GlowingFlurryPlateform implements AdsPlateform{
 	}
 
 	@Override
-	public void showNamedInterstitial(String unit, boolean ifCachedOnly) {
+	public void showNamedInterstitial(final String unit, boolean ifCachedOnly) {
 		if (contextRef.get() == null) {
 			delegate.didFailToLoadInterstitial(unit, this);
 		}
@@ -98,7 +98,46 @@ public class GlowingFlurryPlateform implements AdsPlateform{
 			}
 		} else{
 			FlurryAgent.getAd(this.contextRef.get(), unit, container, FlurryAdSize.FULLSCREEN, 0);
-		}	
+		}
+		
+		contextRef.get().runOnUiThread(new Runnable() {
+			
+			@Override
+			public void run() {
+				final GlowingFlurryPlateform plateform = GlowingFlurryPlateform.this;
+				delegate.didDisplayedIntertitial(unit, plateform);
+				final Handler handler = new Handler();
+				handler.postDelayed(new Runnable() {
+					
+					@Override
+					public void run() {
+						new Thread(new Runnable() {
+							
+							@Override
+							public void run() {
+								while (true) {
+									Thread.yield();
+									if (!isRunning(com.flurry.android.FlurryFullscreenTakeoverActivity.class.getName())) {
+										handler.post(new Runnable() {
+											
+											@Override
+											public void run() {
+												delegate.didDismissInterstitial(unit, plateform);
+											}
+										});
+										
+										return;
+									}
+								}
+								
+							}
+						});
+						
+					}
+				}, 700);
+				
+			}
+		});
 	}
 
 	@Override
@@ -122,6 +161,8 @@ public class GlowingFlurryPlateform implements AdsPlateform{
 		this.delegate = delegate;
 		if (cxt.get() != null) {
 			FlurryAgent.initializeAds(cxt.get());
+			// TODO: remove the next line
+			// FlurryAgent.enableTestAds(true);
 			this.adListenner = new MyAdListenner();
 			FlurryAgent.setAdListener(adListenner);
 		}
@@ -170,18 +211,6 @@ public class GlowingFlurryPlateform implements AdsPlateform{
 	
 	@Override
 	public boolean onBackPressed() {
-		if (isRunning(com.flurry.android.FlurryFullscreenTakeoverActivity.class.getName())) {
-			new Handler().postDelayed(new Runnable() {
-				
-				@Override
-				public void run() {
-					delegate.didDismissInterstitial(null, GlowingFlurryPlateform.this);
-				}
-			}, 400);
-			
-			return true;
-		}
-		
 		return false;
 	}
 	

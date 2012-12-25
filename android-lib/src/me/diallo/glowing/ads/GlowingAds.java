@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -60,8 +61,6 @@ public class GlowingAds {
 		this.FLURRY = new GlowingFlurryPlateform();
 
 		plateforms = new AdsPlateform[] { CHART_BOOST , AD_COLONY, FLURRY};
-
-		reloadSettings();
 
 		this.handler = new Handler();
 		preCacheAds(true);
@@ -312,6 +311,7 @@ public class GlowingAds {
 	static class GlowingAdsSettings {
 		List<AdUnit> units;
 		String selection_strategy;
+		Date loadedAt = new Date();
 		ConcurrentMap<String, AdUnitPlateform> map = new ConcurrentHashMap<String, GlowingAds.AdUnitPlateform>();
 
 		public void setUnitsPlateformsMap(ConcurrentMap<String, AdUnitPlateform> map) {

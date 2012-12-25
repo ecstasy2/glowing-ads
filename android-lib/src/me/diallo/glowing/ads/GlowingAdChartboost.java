@@ -31,16 +31,17 @@ public class GlowingAdChartboost implements AdsPlateform {
 
 		@Override
 		public void didCloseInterstitial(String location) {
+			delegate.didDismissInterstitial(location, GlowingAdChartboost.this);
 		}
 
 		@Override
 		public void didCloseMoreApps() {
+			cb.cacheMoreApps();
 		}
 
 		@Override
 		public void didDismissInterstitial(String location) {
 			cb.cacheInterstitial(location);
-			delegate.didDismissInterstitial(location, GlowingAdChartboost.this);
 		}
 
 		@Override
@@ -139,6 +140,10 @@ public class GlowingAdChartboost implements AdsPlateform {
 	public void startSession() {
 		cb.startSession();
 	}
+	
+	public void displayMoreApps() {
+		cb.showMoreApps();
+	}
 
 	@Override
 	public void cacheDefaultAdUnit() {
@@ -161,6 +166,7 @@ public class GlowingAdChartboost implements AdsPlateform {
 	@Override
 	public void showDefaultInterstitial() {
 		showNamedInterstitial(this.defaultUnitName, false);
+		cb.cacheMoreApps();
 	}
 
 	@Override
